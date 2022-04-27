@@ -29,6 +29,7 @@ for url in url_list:
     # sticker_divs = soup.findAll("div", {"class": "md-layout-item md-size-20"})
     sticker_divs = soup.findAll("div", {"class": "pa-2 position-relative col-sm-3 col-md-2 col-3"})
     for sticker_div in sticker_divs:
+        # print(sticker_div)
         sticker_src = sticker_div.find('img').get('src')
         sticker_name = sticker_div.find('img').get('alt').replace(" ","")
         print(sticker_src)
