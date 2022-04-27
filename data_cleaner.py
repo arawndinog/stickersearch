@@ -1,9 +1,9 @@
-from utils import img_process
+from utils import process_image
 import os
 import cv2
 import numpy as np
 
-def convert_webp_to_png(img_dir, output_dir):
+def convert_webp_to_png(img_dir: str, output_dir: str) -> None:
     img_list = os.listdir(img_dir)
     for i in range(len(img_list)):
         img_fname = img_list[i]
@@ -11,7 +11,7 @@ def convert_webp_to_png(img_dir, output_dir):
 
         img = cv2.imread(img_dir + img_fname, -1)
         # img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-        # img = img_process.resize_img_height(img, 240)
+        # img = process_image.resize_img_height(img, 240)
         img_mask = np.expand_dims(img[:,:,3],2)
         img_mask_bool = img_mask.astype(np.bool)
         # img_mask_white = ~img_mask
