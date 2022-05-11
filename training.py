@@ -12,7 +12,7 @@ train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True
 test_dataloader = DataLoader(testing_data, batch_size=batch_size, shuffle=True)
 max_label = testing_data.max_label()
 
-model = cnn.cnn_feature_extraction(labels = max_label + 1)
+model = cnn.cnn_feature_extraction(labels = 200)        #max_label + 1
 optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
 loss_fn = torch.nn.CrossEntropyLoss()
 
