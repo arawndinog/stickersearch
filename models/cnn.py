@@ -2,22 +2,23 @@ import torch
 
 class cnn_feature_extraction(torch.nn.Module):
 
-    def __init__(self):
+    def __init__(self, labels):
         super(cnn_feature_extraction, self).__init__()
 
-        self.conv1 = torch.nn.Conv2d(1, 50, 3)
-        self.conv2 = torch.nn.Conv2d(50, 100, 3)
-        self.conv3 = torch.nn.Conv2d(100, 150, 3)
-        self.conv4 = torch.nn.Conv2d(150, 200, 3)
-        self.conv5 = torch.nn.Conv2d(200, 250, 3)
-        self.conv6 = torch.nn.Conv2d(250, 300, 3)
-        self.conv7 = torch.nn.Conv2d(300, 350, 3)
-        self.conv8 = torch.nn.Conv2d(350, 400, 3)
-        self.conv9 = torch.nn.Conv2d(400, 450, 3)
-        self.conv10 = torch.nn.Conv2d(450, 500, 3)
+        self.conv1 = torch.nn.Conv2d(1, 50, 3, padding=1)
+        self.conv2 = torch.nn.Conv2d(50, 100, 3, padding=1)
+        self.conv3 = torch.nn.Conv2d(100, 150, 3, padding=1)
+        self.conv4 = torch.nn.Conv2d(150, 200, 3, padding=1)
+        self.conv5 = torch.nn.Conv2d(200, 250, 3, padding=1)
+        self.conv6 = torch.nn.Conv2d(250, 300, 3, padding=1)
+        self.conv7 = torch.nn.Conv2d(300, 350, 3, padding=1)
+        self.conv8 = torch.nn.Conv2d(350, 400, 3, padding=1)
+        self.conv9 = torch.nn.Conv2d(400, 450, 3, padding=1)
+        self.conv10 = torch.nn.Conv2d(450, 500, 3, padding=1)
 
         self.max_pool1 = torch.nn.MaxPool2d(2, stride=(2, 2))
 
+        self.flatten = torch.nn.Flatten()
         self.relu = torch.nn.ReLU()
         self.drop1 = torch.nn.Dropout(p=0.1)
         self.drop2 = torch.nn.Dropout(p=0.2)
@@ -27,7 +28,7 @@ class cnn_feature_extraction(torch.nn.Module):
 
         self.fc1 = torch.nn.Linear(500 * 2 * 2, 900)
         self.fc2 = torch.nn.Linear(900, 100)
-        self.fc3 = torch.nn.Linear(100, 200)
+        self.fc3 = torch.nn.Linear(100, labels)
 
     def forward(self, x):
         # conv_layer1
