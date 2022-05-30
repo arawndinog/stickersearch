@@ -77,7 +77,6 @@ class cnn_feature_extraction(torch.nn.Module):
         x = self.max_pool1(x)   # 2x2
 
         # fc_layer1
-        # x = x.view(-1, self.num_flat_features(x))
         x = self.flatten(x)
         x = self.fc1(x)
         x = self.relu(x)
@@ -89,11 +88,3 @@ class cnn_feature_extraction(torch.nn.Module):
         x = self.fc3(x)
 
         return x
-
-
-    def num_flat_features(self, x):
-        size = x.size()[1:]  # all dimensions except the batch dimension
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
