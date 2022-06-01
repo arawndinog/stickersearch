@@ -10,7 +10,7 @@ hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML,
        'Accept-Language': 'en-US,en;q=0.8',
        'Connection': 'keep-alive'}
 
-def parse_stick_cloud(url_list_path: str = "config/url_list.txt", output_dir: str = "outputs/") -> None:
+def parse_stick_cloud(url_list_path: str = "url_list.txt", output_dir: str = "outputs/") -> None:
     url_list_file = open(url_list_path, 'r')
     url_list = url_list_file.readlines()
     url_list_file.close()
