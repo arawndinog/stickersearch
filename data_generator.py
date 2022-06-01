@@ -1,16 +1,27 @@
-from socket import IOCTL_VM_SOCKETS_GET_LOCAL_CID
 import torch
 from torch.utils.data import Dataset
+from torchvision import transforms
 import cv2
 import os
-import numpy as np
-np.set_printoptions(threshold=np.inf)
 
 class StickerDataset(Dataset):
-    def __init__(self, img_dir):
+    def __init__(self, img_dir, input_size, augmentation=False):
         self.img_dir = img_dir
-        self.img_list = os.listdir(img_dir)
+        self.img_list = sorted(os.listdir(img_dir))
         self.img_labels = list(range(len(self.img_list)))
+        self.augmentation = augmentation
+
+        self.augmentations = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.RandomAffine(degrees=8, translate=(0.1, 0.1), scale=(0.8, 1), shear=None),
+            transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
+            transforms.Resize((input_size, input_size))
+        ])
+
+        self.transforms = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize((input_size, input_size))
+        ])
 
     def __len__(self):
         return len(self.img_labels)
@@ -20,12 +31,12 @@ class StickerDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_list[idx])
-        image = cv2.imread(img_path, 0)
-        # image = cv2.resize(image, (256, 256))
-        image = cv2.resize(image, (64, 64))
-        image = ~image / 255.0   # make pixels to be max 1
-        # cv2.imwrite("outputs/test.png", image*255)
-        image = np.expand_dims(image, 0)
-        image = image.astype(np.float32)
+
+        img = cv2.imread(img_path, 0)
+        if self.augmentation:
+            img = self.augmentations(img)
+        else:
+            img = self.transforms(img)
+        
         label = idx
-        return image, label
+        return img, label, img_path
