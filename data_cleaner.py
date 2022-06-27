@@ -26,10 +26,14 @@ def convert_webp_to_png(img_dir: str, output_dir: str) -> None:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # flip colors to make bg black for better augmentation
         img = 255-img
+        # normalize color
+        img = (img - np.amin(img)) / (np.amax(img) - np.amin(img)) * 255.0
+        img = img.astype(np.uint8)
+
         cv2.imwrite(png_path, img)
     return
 
 if __name__ == "__main__":
     # convert_webp_to_png("outputs/stick-faces/", "outputs/results/")
     # convert_webp_to_png("dataset/stickers_webp/batch_2/", "dataset/stickers_png/batch_2/")
-    convert_webp_to_png("dataset/stickers_webp/batch_2/", "dataset/stickers_png/batch_2_cleaned/")
+    convert_webp_to_png("dataset/stickers_webp/batch_3/", "dataset/stickers_png/batch_3_cleaned/")

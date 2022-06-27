@@ -1,5 +1,16 @@
 import cv2
 import numpy as np
+import os
+
+def get_img_list(img_dir_path: str, color_mode: int):
+    src_dir = img_dir_path
+    file_list = os.listdir(src_dir)
+    img_list = []
+    for i in range(len(file_list)):
+        img_fname = file_list[i]
+        img = cv2.imread(src_dir + img_fname, color_mode)
+        img_list.append(img)
+    return img_list
 
 def resize_img_height(img: np.ndarray, new_h: int) -> np.ndarray:
     img_h = img.shape[0]
@@ -121,3 +132,23 @@ def rand_warp(img: np.ndarray, padding_bound: int=3, persp_bound: float=0.008, r
     warpped_img = extend_canvas_square(warpped_img)
     warpped_img = cv2.resize(warpped_img, (orig_col, orig_row), interpolation = cv2.INTER_CUBIC)
     return warpped_img
+
+def skeletonize(img):
+    img1 = img.copy()
+    # Structuring Element
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3,3))
+    # Create an empty output image to hold values
+    thin = np.zeros(img.shape, dtype='uint8')
+    # Loop until erosion leads to an empty set
+    while (cv2.countNonZero(img1)!=0):
+        # Erosion
+        erode = cv2.erode(img1, kernel)
+        # Opening on eroded image
+        opening = cv2.morphologyEx(erode, cv2.MORPH_OPEN, kernel)
+        # Subtract these two
+        subset = erode - opening
+        # Union of all previous sets
+        thin = cv2.bitwise_or(subset, thin)
+        # Set the eroded image for next iteration
+        img1 = erode.copy()
+    return thin

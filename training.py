@@ -1,24 +1,26 @@
 import torch
-from data_generator import StickerDataset
+from utils.gen_data import StickerDataset, StickerDatasetTriplet
 from torch.utils.data import DataLoader
 import torchvision
 from torchvision.models.feature_extraction import get_graph_node_names, create_feature_extractor
 from models import cnn, triplet_loss_pt
 import datetime
 
-batch_size = 32
-# input_size = 128
-input_size = 224
 device = "cuda:0"
 datetime = datetime.datetime.now().strftime('%Y%m%d%H%M')
-
-training_data = StickerDataset(img_dir="dataset/stickers_png/batch_1_cleaned/", input_size=input_size, augmentation=False)
-testing_data = StickerDataset(img_dir="dataset/stickers_png/batch_1_cleaned/", input_size=input_size, augmentation=False)
-train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
-test_dataloader = DataLoader(testing_data, batch_size=batch_size, shuffle=False)
-max_label = testing_data.max_label()
+img_dir_path_list = ["dataset/stickers_png/batch_1_cleaned/", "dataset/stickers_png/batch_3_cleaned/"]
 
 def train_feature_extraction():
+    batch_size = 16
+    # input_size = 128
+    input_size = 224
+
+    training_data = StickerDataset(img_dir_list=img_dir_path_list, input_size=input_size, augmentation=False)
+    testing_data = StickerDataset(img_dir_list=img_dir_path_list, input_size=input_size, augmentation=False)
+    train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
+    test_dataloader = DataLoader(testing_data, batch_size=batch_size, shuffle=False)
+    max_label = testing_data.max_label()
+
     # seed_ckpt_path = "outputs/features_202205311834.pt"
     # seed_ckpt_path = "outputs/features_202206010133.pt"
     # seed_ckpt_path = "outputs/features_202206010244.pt"
@@ -70,8 +72,21 @@ def train_feature_extraction():
         epoch_i += 1
 
 def train_similarity():
-    # seed_ckpt_path = "outputs/features_202205311834.pt"
+    batch_size = 64
+    input_size = 128
+    # input_size = 224
+
+    training_data = StickerDatasetTriplet(img_dir_list=img_dir_path_list, input_size=input_size)
+    testing_data = StickerDatasetTriplet(img_dir_list=img_dir_path_list, input_size=input_size)
+    train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
+    test_dataloader = DataLoader(testing_data, batch_size=batch_size, shuffle=False)
+    max_label = testing_data.max_label()
+
     seed_ckpt_path = ""
+    # seed_ckpt_path = "outputs/features_202206192207.pt"
+    # seed_ckpt_path = "outputs/features_202206192243.pt"      # best tri2 cnn2 + aug
+    # seed_ckpt_path = "outputs/features_202206192311.pt"      # best tri2 cnn2 + aug
+    # seed_ckpt_path = "outputs/features_202206230039.pt"      # best tri2 cnn2 + aug
 
     # model = cnn.cnn1(labels = max_label + 1).to(device)
     model = cnn.cnn2(labels = max_label + 1).to(device)
@@ -79,7 +94,9 @@ def train_similarity():
         model.load_state_dict(torch.load(seed_ckpt_path, map_location=torch.device(device)))
     feature_out = create_feature_extractor(model, ['fc2'])
     optimizer = torch.optim.Adam(model.parameters(), lr = 0.0001)
-    # loss_fn = torch.nn.CrossEntropyLoss()
+    # loss_fn = torch.nn.TripletMarginLoss(margin=100)
+    # loss_fn = torch.nn.TripletMarginWithDistanceLoss(distance_function=torch.nn.CosineSimilarity(dim=1), margin=10)
+    loss_fn = torch.nn.TripletMarginWithDistanceLoss(distance_function=torch.nn.PairwiseDistance(), margin=10)
 
     epoch_i = 0
     while True:
@@ -88,16 +105,19 @@ def train_similarity():
         loss_list = []
         prev_best_loss = 10000
         prev_best_acc = 0
-        for (train_features, train_labels, _) in train_dataloader:
+        for (train_features_anc, train_features_pos, train_features_neg, train_labels_pos, train_labels_neg, _) in train_dataloader:
+            train_features = torch.concat((train_features_anc, train_features_pos, train_features_neg), 0)
+            train_labels = torch.concat((train_labels_pos, train_labels_pos, train_labels_neg), 0)
             train_features = train_features.to(device)
             train_labels = train_labels.to(device)
             optimizer.zero_grad()
             # logits = model(train_features)
-            # pred_probs = torch.nn.Softmax(dim=1)(logits)
-            # y_pred = pred_probs.argmax(1)
-            # loss = loss_fn(logits, train_labels)
             features = feature_out(train_features)['fc2']
-            loss, _ = triplet_loss_pt.batch_all_triplet_loss(train_labels, features, margin=10, squared=False)
+            features_anc = features[:train_features_anc.shape[0]]
+            features_pos = features[train_features_anc.shape[0]:train_features_anc.shape[0] + train_features_pos.shape[0]]
+            features_neg = features[train_features_anc.shape[0] + train_features_pos.shape[0]:]
+            # loss, _ = triplet_loss_pt.batch_all_triplet_loss(train_labels, features, margin=100, squared=False)
+            loss = loss_fn(features_anc, features_pos, features_neg)
             loss_list.append(loss.item())
             loss.backward()
             optimizer.step()
@@ -107,7 +127,7 @@ def train_similarity():
         # current_acc = (n_correct/len(training_data)).item()
         print("Training loss:", current_loss)
         # print("Training acc:", current_acc)
-        if (epoch_i % 10 == 0) and (current_loss <= prev_best_loss): # and (current_acc >= prev_best_acc):
+        if (epoch_i % 100 == 0) and (current_loss <= prev_best_loss): # and (current_acc >= prev_best_acc):
             prev_best_loss = current_loss
             # prev_best_acc = current_acc
             ckpt_path = "outputs/features_" + datetime + ".pt"
@@ -116,4 +136,4 @@ def train_similarity():
         epoch_i += 1
 
 
-train_feature_extraction()
+train_similarity()
