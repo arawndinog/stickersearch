@@ -313,12 +313,12 @@ def mimic_hed(input_dir, output_dir):
     return
 
 def gen_mimic():
-    input_dir_prefix = "batch_3_cleaned"
-    input_dir = "dataset/stickers_png/" + input_dir_prefix + "/"
+    input_dir = "dataset/stickers_png/batch_1/"
+    input_subdir = "cleaned/"
 
-    mimic_canny(input_dir, "dataset/stickers_png/" + input_dir_prefix + "_canny/")
-    mimic_photosketch(input_dir, "dataset/stickers_png/" + input_dir_prefix + "_photosketch/")
-    mimic_hed(input_dir, "dataset/stickers_png/" + input_dir_prefix + "_hed/")
+    mimic_canny(input_dir + input_subdir,       input_dir + "canny/")
+    mimic_photosketch(input_dir + input_subdir, input_dir + "photosketch/")
+    mimic_hed(input_dir + input_subdir,         input_dir + "hed/")
 
 
 if __name__ == "__main__":

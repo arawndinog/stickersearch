@@ -4,7 +4,7 @@ import os
 
 def get_img_list(img_dir_path: str, color_mode: int):
     src_dir = img_dir_path
-    file_list = os.listdir(src_dir)
+    file_list = sorted(os.listdir(src_dir))
     img_list = []
     for i in range(len(file_list)):
         img_fname = file_list[i]
