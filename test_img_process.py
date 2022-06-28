@@ -312,8 +312,20 @@ def mimic_hed(input_dir, output_dir):
         cv2.imwrite(output_dir + "img_" + str(i).zfill(3) + ".png", img)
     return
 
+def test_aug():
+    input_dir = "dataset/stickers_png/batch_1/hed/"
+    output_dir = "outputs/processed_results8/"
+    img_list = os.listdir(input_dir)
+    for img_path in img_list:
+        img = cv2.imread(input_dir + img_path, 0)
+        img = process_image.rand_warp(img, padding_bound=3, persp_bound=0.001, rot_bound=2, scale_diff_bound=0.2)
+        img = process_image.rand_rotate(img, 2)
+        img = process_image.rand_translate_by_factor(img, 0.1)
+        cv2.imwrite(output_dir + img_path, img)
+    return
+
 def gen_mimic():
-    input_dir = "dataset/stickers_png/batch_1/"
+    input_dir = "dataset/stickers_png/batch_2/"
     input_subdir = "cleaned/"
 
     mimic_canny(input_dir + input_subdir,       input_dir + "canny/")
@@ -322,4 +334,4 @@ def gen_mimic():
 
 
 if __name__ == "__main__":
-    gen_mimic()
+    test_aug()

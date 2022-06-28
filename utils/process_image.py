@@ -85,6 +85,18 @@ def crop_border(img: np.ndarray, keep_rows: bool=False, keep_cols: bool=False) -
 
     return img
 
+def rotate_by_deg(img, rotate_degree=1):
+    rows = img.shape[0]
+    cols = img.shape[1]
+    M = cv2.getRotationMatrix2D((cols/2,rows/2),rotate_degree,1)
+    rotated_img = cv2.warpAffine(img,M,(cols,rows))
+    return rotated_img
+
+def rand_rotate(img, max_deg=8):
+    rotate_degree = np.random.randint(low=-1*max_deg,high=max_deg)
+    rotated_img = rotate_by_deg(img, rotate_degree=rotate_degree)
+    return rotated_img
+
 def translate_by_pixel(img: np.ndarray, row_translate_pixel: int=1, col_translate_pixel: int=1) -> np.ndarray:
     rows = img.shape[0]
     cols = img.shape[1]
@@ -152,3 +164,8 @@ def skeletonize(img):
         # Set the eroded image for next iteration
         img1 = erode.copy()
     return thin
+
+def preview_img(img):
+    cv2.imshow('image',img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

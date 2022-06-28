@@ -5,6 +5,7 @@ import cv2
 import os
 import numpy as np
 import random
+from utils import process_image
 
 class StickerDataset(Dataset):
     def __init__(self, img_dir_list, input_size, augmentation=False):
@@ -99,6 +100,16 @@ class StickerDatasetTriplet(Dataset):
         img_neg_idx = np.random.choice(img_other_indices)
         img_neg_list = [self.img_anc_pool[img_neg_idx]] + self.img_pos_pool[img_neg_idx]
         img_neg = random.choice(img_neg_list)
+
+        if np.random.rand() < 0.5:
+            img_pos = process_image.rand_warp(img_pos, padding_bound=3, persp_bound=0.001, rot_bound=2, scale_diff_bound=0.2)
+            img_pos = process_image.rand_rotate(img_pos, 2)
+            img_pos = process_image.rand_translate_by_factor(img_pos, 0.1)
+
+        if np.random.rand() < 0.5:
+            img_neg = process_image.rand_warp(img_neg, padding_bound=3, persp_bound=0.001, rot_bound=2, scale_diff_bound=0.2)
+            img_neg = process_image.rand_rotate(img_neg, 2)
+            img_neg = process_image.rand_translate_by_factor(img_neg, 0.1)
 
         img_anc = cv2.resize(img_anc, dsize=(self.input_size, self.input_size), interpolation=cv2.INTER_AREA)
         img_pos = cv2.resize(img_pos, dsize=(self.input_size, self.input_size), interpolation=cv2.INTER_AREA)
