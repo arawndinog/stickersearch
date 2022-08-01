@@ -2,7 +2,7 @@ Sticker Search: Sketch and Text-based Image Search on Mobile
 
 Environment: 
     Python 3.8, PyTorch 1.11
-    An environment.yml for setting Miniconda environement is also included.
+    An environment.yml for setting Miniconda environment is also included.
 
 OneDrive link for dataset, checkpoints and third-party models:
     -snip-
@@ -28,7 +28,7 @@ OCR:
     test_easyocr.py
     Prints OCR results with EasyOCR.
 
-Acknowledgements:
+Acknowledgments:
     EasyOCR is available in https://pypi.org/project/easyocr/.
     PhotoSketch is available in https://github.com/mtli/PhotoSketch; model for inference is exported from modified PhotoSketch source code.
     HED is available in https://github.com/sniklaus/pytorch-hed; model for inference is exported from modified pytorch-hed source code.
