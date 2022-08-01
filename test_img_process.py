@@ -4,6 +4,7 @@ import numpy as np
 import os
 import torch
 from torchvision import transforms
+import albumentations as A
 
 def test_cleaning():
     src_dir = "dataset/stickers_webp/batch_1/"
@@ -108,6 +109,12 @@ def cv_warping(img_orig):
     img = process_image.rand_warp(img_orig, padding_bound=3, persp_bound=0.001, rot_bound=2, scale_diff_bound=0.2)
     return img
 
+def slice_bit_plane(img, mask=192):
+    img = np.bitwise_and(img, mask)
+    img = img.astype(float)/mask * 255
+    img = img.astype(np.uint8)
+    return img
+
 def test_augmentation_pipeline():
     # init photosketch
     device = "cuda"
@@ -163,8 +170,8 @@ def test_augmentation_pipeline2():
     hed_model = torch.jit.load(hed_ckpt_path, map_location=torch.device(device))
     hed_model.eval()
 
-    input_dir = "dataset/stickers_png/batch_3_cleaned/"
-    output_dir = "outputs/processed_results6/"
+    input_dir = "dataset/stickers_png/batch_2/cleaned/"
+    output_dir = "outputs/processed_results8/"
     img_list = process_image.get_img_list(img_dir_path=input_dir, color_mode=1)
     for i in range(len(img_list)):
         img_orig = img_list[i]
@@ -204,12 +211,13 @@ def test_augmentation_pipeline2():
         kernel = np.ones((3,3), np.uint8)
         img = cv2.dilate(img, kernel, iterations = 1)
         img = remove_double_stroke(img)
+        # img = remove_double_stroke(img)
         _, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
         img = np.expand_dims(img, 2)
         img = np.repeat(img, 3, 2)
 
-        img_compare = np.concatenate((img_orig, img), axis=1)
+        img_compare = np.concatenate((img_orig, img), axis=0)
         cv2.imwrite(output_dir + str(i).zfill(3) + ".png", img_compare)
         print(i)
     return
@@ -313,16 +321,42 @@ def mimic_hed(input_dir, output_dir):
     return
 
 def test_aug():
-    input_dir = "dataset/stickers_png/batch_1/hed/"
+    input_dir = "dataset/stickers_png/batch_3/hed/"
+    output_dir = "outputs/processed_results8/"
+    img_list = os.listdir(input_dir)
+    aug = A.ElasticTransform(p=0.5, alpha=1, sigma=50, alpha_affine=50, border_mode=cv2.BORDER_CONSTANT)
+    for img_path in img_list:
+        img_orig = cv2.imread(input_dir + img_path, 0)
+        img = img_orig.copy()
+        # img = process_image.rand_warp(img, padding_bound=3, persp_bound=0.001, rot_bound=2, scale_diff_bound=0.2)
+        img = process_image.rand_rotate(img, 2)
+        img = process_image.rand_translate_by_factor(img, 0.1)
+        img_auged = aug(image=img)
+        img = img_auged["image"]
+        img_compare = np.concatenate((img_orig, img), axis=0)
+        # img_compare = cv2.addWeighted(img_orig, 0.5, img, 0.5, 0)
+        cv2.imwrite(output_dir + img_path, img_compare)
+    return
+
+def test_mimic():
+    input_dir = "dataset/stickers_png/batch_2/cleaned/"
     output_dir = "outputs/processed_results8/"
     img_list = os.listdir(input_dir)
     for img_path in img_list:
-        img = cv2.imread(input_dir + img_path, 0)
-        img = process_image.rand_warp(img, padding_bound=3, persp_bound=0.001, rot_bound=2, scale_diff_bound=0.2)
-        img = process_image.rand_rotate(img, 2)
-        img = process_image.rand_translate_by_factor(img, 0.1)
-        cv2.imwrite(output_dir + img_path, img)
-    return
+        img_orig = cv2.imread(input_dir + img_path, 0)
+        img = img_orig.copy()
+        # img = slice_bit_plane(img, 192)
+        # img = cv2.GaussianBlur(img, (3,3), 1)
+        img = 255-img
+        img = ftlib.fastThin(img)
+        img = 255-img
+        # img = cv2.Canny(img, 100, 200)
+        # img = remove_double_stroke(img)
+        # _, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        # img_compare = np.concatenate((img_orig, img), axis=1)
+        img_compare = np.concatenate((img_orig, img), axis=0)
+        cv2.imwrite(output_dir + img_path, img_compare)
+
 
 def gen_mimic():
     input_dir = "dataset/stickers_png/batch_2/"
@@ -334,4 +368,4 @@ def gen_mimic():
 
 
 if __name__ == "__main__":
-    test_aug()
+    test_augmentation_pipeline2()

@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+# source: https://github.com/Schukuratsu/Python-cv2-fast-thinning-algorithm
+
 def fastThin(img_ori):
     obj = 0
     bg = 255

@@ -72,9 +72,10 @@ def train_feature_extraction():
         epoch_i += 1
 
 def train_similarity():
-    batch_size = 16
-    # input_size = 128
-    input_size = 224
+    batch_size = 64
+    input_size = 128
+    # batch_size = 16
+    # input_size = 224
 
     img_dir_path_list = ["dataset/stickers_png/batch_1/", "dataset/stickers_png/batch_3/"]
     training_data = StickerDatasetTriplet(img_dir_list=img_dir_path_list, input_size=input_size)
@@ -87,18 +88,20 @@ def train_similarity():
     # seed_ckpt_path = "outputs/features_202206192311.pt"      # best tri2 cnn2 + aug
     # seed_ckpt_path = "outputs/features_202206230039.pt"      # best tri2 cnn2 + aug
     # seed_ckpt_path = "outputs/features_202206280113.pt"      # cnn2 triplet pairwise mimic
-    seed_ckpt_path = "outputs/features_202206280114.pt"      # convnext triplet pairwise mimic
+    # seed_ckpt_path = "outputs/features_202206280114.pt"      # convnext triplet pairwise mimic
+    seed_ckpt_path = "outputs/features_202206282334.pt"      # cnn2 triplet pairwise mimic + warp aug
+    # seed_ckpt_path = "outputs/features_202206282339.pt"      # convnext triplet pairwise mimic + warp aug
 
     # model = cnn.cnn1(labels = max_label + 1)
-    # model = cnn.cnn2(labels = max_label + 1)
-    model = torchvision.models.convnext_small(pretrained=False, num_classes=max_label + 1)
-    model._modules["features"][0][0] = torch.nn.Conv2d(1, 96, kernel_size=(4, 4), stride=(4, 4))
+    model = cnn.cnn2(labels = max_label + 1)
+    # model = torchvision.models.convnext_small(pretrained=False, num_classes=max_label + 1)
+    # model._modules["features"][0][0] = torch.nn.Conv2d(1, 96, kernel_size=(4, 4), stride=(4, 4))
     model.to(device)
     if seed_ckpt_path:
         model.load_state_dict(torch.load(seed_ckpt_path, map_location=torch.device(device)))
         
-    # feature_out = create_feature_extractor(model, {'fc2':"features_layer"})
-    feature_out = create_feature_extractor(model, {'classifier.2':'features_layer'})
+    feature_out = create_feature_extractor(model, {'fc2':"features_layer"})
+    # feature_out = create_feature_extractor(model, {'classifier.2':'features_layer'})
     optimizer = torch.optim.Adam(model.parameters(), lr = 0.0001)
     # loss_fn = torch.nn.TripletMarginLoss(margin=100)
     # loss_fn = torch.nn.TripletMarginWithDistanceLoss(distance_function=torch.nn.CosineSimilarity(dim=1), margin=10)
@@ -111,7 +114,7 @@ def train_similarity():
         loss_list = []
         prev_best_loss = 10000
         prev_best_acc = 0
-        for (train_features_anc, train_features_pos, train_features_neg, train_labels_pos, train_labels_neg) in train_dataloader:
+        for (train_features_anc, train_features_pos, train_features_neg, train_labels_pos, train_labels_neg, _) in train_dataloader:
             train_features = torch.concat((train_features_anc, train_features_pos, train_features_neg), 0)
             train_labels = torch.concat((train_labels_pos, train_labels_pos, train_labels_neg), 0)
             train_features = train_features.to(device)
