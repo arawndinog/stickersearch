@@ -5,7 +5,7 @@ Environment:
     An environment.yml for setting Miniconda environement is also included.
 
 OneDrive link for dataset, checkpoints and third-party models:
-    https://connecthkuhk-my.sharepoint.com/:f:/g/personal/arawn_connect_hku_hk/EnWAEQ5I6CNGtIbFK84qCyIB0MlQNXXpC53icDMj_6YYvg?e=06a74B
+    -snip-
 
 Training: 
     training.py
@@ -23,3 +23,12 @@ Data generation:
     utils/gen_data.py
     Third-party models used for sketch imitation are available at OneDrive models/, to be placed in models/at root.
     test_img_process.py, test_photosketch.py and test_hed.py are testing script for sketch imitation models and augmentations.
+
+OCR:
+    test_easyocr.py
+    Prints OCR results with EasyOCR.
+
+Acknowledgements:
+    EasyOCR is available in https://pypi.org/project/easyocr/.
+    PhotoSketch is available in https://github.com/mtli/PhotoSketch; model for inference is exported from modified PhotoSketch source code.
+    HED is available in https://github.com/sniklaus/pytorch-hed; model for inference is exported from modified pytorch-hed source code.
