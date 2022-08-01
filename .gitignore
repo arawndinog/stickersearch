@@ -1,6 +1,7 @@
 *.pyc
 *.png
 *.pth
+*.ptl
 outputs/*
 dataset/*
 !.gitkeep
