@@ -32,3 +32,4 @@ Acknowledgments:
     EasyOCR is available in https://pypi.org/project/easyocr/.
     PhotoSketch is available in https://github.com/mtli/PhotoSketch; model for inference is exported from modified PhotoSketch source code.
     HED is available in https://github.com/sniklaus/pytorch-hed; model for inference is exported from modified pytorch-hed source code.
+    Ftlib is available in https://github.com/Schukuratsu/Python-cv2-fast-thinning-algorithm.
