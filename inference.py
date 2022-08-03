@@ -11,8 +11,8 @@ from torch.utils.mobile_optimizer import optimize_for_mobile
 
 batch_size = 1
 # input_size = 64
-# input_size = 128
-input_size = 224
+input_size = 128
+# input_size = 224
 device = "cuda"
 
 # testing_data = StickerDataset(img_dir_list=["dataset/stickers_png/batch_2_cleaned/"], input_size=input_size, augmentation=True)
@@ -38,10 +38,10 @@ def test_imgs():
     # ckpt_path = "outputs/checkpoints/features_202206280114.pt"      # convnext triplet pairwise mimic
     # ckpt_path = "outputs/checkpoints/features_202206282334.pt"      # cnn2 triplet pairwise mimic + warp aug
     # ckpt_path = "outputs/checkpoints/features_202206282339.pt"      # convnext triplet pairwise mimic + warp aug
-    # ckpt_path = "outputs/checkpoints/features_202206300021a.pt"      # cnn2 triplet pairwise mimic + elastic aug
+    ckpt_path = "outputs/checkpoints/features_202206300021a.pt"      # cnn2 triplet pairwise mimic + elastic aug
     # ckpt_path = "outputs/checkpoints/features_202206300018a.pt"      # convnext triplet pairwise mimic + elastic aug
     # ckpt_path = "outputs/checkpoints/features_202206300021b.pt"      # cnn2 triplet pairwise mimic + elastic aug B
-    ckpt_path = "outputs/checkpoints/features_202206300018b.pt"      # convnext triplet pairwise mimic + elastic aug B
+    # ckpt_path = "outputs/checkpoints/features_202206300018b.pt"      # convnext triplet pairwise mimic + elastic aug B
     
     
     # labels = 117
@@ -50,9 +50,9 @@ def test_imgs():
     
     # model = cnn.cnn1(labels = labels)
     # model = cnn.cnn2(labels = labels)
-    # model = cnn.cnn2_deploy()
-    model = torchvision.models.convnext_small(pretrained=False, num_classes=labels)
-    model._modules["features"][0][0] = torch.nn.Conv2d(1, 96, kernel_size=(4, 4), stride=(4, 4))
+    model = cnn.cnn2_deploy()
+    # model = torchvision.models.convnext_small(pretrained=False, num_classes=labels)
+    # model._modules["features"][0][0] = torch.nn.Conv2d(1, 96, kernel_size=(4, 4), stride=(4, 4))
     model.load_state_dict(torch.load(ckpt_path, map_location=torch.device(device)))
     model.to(device)
     model.eval()
@@ -61,15 +61,17 @@ def test_imgs():
     # print(train_nodes)
     # exit()
 
-    # feature_out = create_feature_extractor(model, {'fc2':"features_layer"})
-    feature_out = create_feature_extractor(model, {'classifier.2':'features_layer'})
+    feature_out = create_feature_extractor(model, {'fc2':"features_layer"})
+    # feature_out = create_feature_extractor(model, {'classifier.2':'features_layer'})
     cos = torch.nn.CosineSimilarity(dim=1)
 
     features_list = []
     label_to_path_dict = dict()
     for (test_data, _, _, test_label, _, test_data_path) in testing_dataloader:
         test_data = test_data.to(device)
-
+        test_data = torch.repeat_interleave(test_data, 3, 1)
+        # print(test_data.shape)
+        # exit()
         
         # traced_script_module = torch.jit.trace(model, test_data)
         # traced_script_module_optimized = optimize_for_mobile(traced_script_module)
@@ -88,10 +90,8 @@ def test_imgs():
     features_arr = torch.cat(features_list, 0)
     # features_arr_np = features_arr.cpu().detach().numpy()
     # print(features_arr_np.shape)
-    # features_arr_np = features_arr_np.astype(">i2")
+    # features_arr_np = features_arr_np.astype(">f2")
     # features_arr_np.tofile("models/features_db.bin")
-    # exit()
-    # torch.save(features_arr, "models/features_db.pt")
     # exit()
 
     cos_n_correct = 0

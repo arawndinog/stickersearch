@@ -223,6 +223,7 @@ class cnn2_deploy(torch.nn.Module):
         self.fc3 = torch.nn.Linear(100, 271)
 
     def forward(self, x):
+        x = x[:,:1,:,:]
         # conv_layer1
         x = self.conv1(x)       # 128x128
         x = self.relu(x)
